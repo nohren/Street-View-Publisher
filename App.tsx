@@ -62,6 +62,8 @@ function App(): JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  console.log("yo Anna Saphireh")
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -77,8 +79,7 @@ function App(): JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            write yo yo yo Oreo
+            Edit <Text style={styles.highlight}>App.tsx</Text> hello world
           </Section>
           <Section title="See Your Changes">
             <ReloadInstructions />
