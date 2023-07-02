@@ -17,18 +17,17 @@ import {
   View,
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {Button, Separator} from './Components/CustomComponents';
 
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
+/**
+ * Text is a react component for natively showing text
+ * style is jss
+ */
 function Section({children, title}: SectionProps): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   return (
@@ -55,6 +54,10 @@ function Section({children, title}: SectionProps): JSX.Element {
   );
 }
 
+const openCameraRoll = () => {
+  console.log('opened');
+};
+
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
@@ -62,8 +65,13 @@ function App(): JSX.Element {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  console.log("yo Anna Saphireh")
-
+  /**
+   * SafeAreaView - applicable only on iOS, for rendering content only in view
+   * StatusBar - the zone a the top with wifi signal, time, battery
+   * ScrollView - a component where everything inside can scroll
+   * View - the most fundamental component of UI.  It supports layouts with flexbox, steyle, some touch handling, and accessibility controls. It maps directly to native view equivalent
+   *
+   */
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -73,24 +81,18 @@ function App(): JSX.Element {
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
         style={backgroundStyle}>
-        <Header />
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> hello world
+            Open <Text style={styles.highlight}>Camera Roll</Text> to select 360
+            photo.
           </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+          <Separator />
+          <View style={styles.screenContainer}>
+            <Button title="open" onPress={openCameraRoll} />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -113,6 +115,11 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  screenContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
   },
 });
 
