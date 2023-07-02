@@ -5,7 +5,7 @@
  * @format
  */
 
-import React from 'react';
+import React, {useState, useCallback} from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
@@ -18,7 +18,16 @@ import {
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {Button, Separator} from './Components/CustomComponents';
+import {
+  Button,
+  DisplayCameraRoll,
+  Separator,
+} from './Components/CustomComponents';
+import {
+  CameraRoll,
+  PhotoIdentifier,
+} from '@react-native-camera-roll/camera-roll';
+import {isEmpty} from './utils/utils';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -54,17 +63,35 @@ function Section({children, title}: SectionProps): JSX.Element {
   );
 }
 
-const openCameraRoll = () => {
-  console.log('opened');
-};
-
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const [photos, setPhotos] = useState({
+    open: false,
+    content: [] as PhotoIdentifier[],
+    selectedPhoto: {},
+  });
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
+  const openCameraRoll = useCallback(() => {
+    CameraRoll.getPhotos({
+      first: 20,
+      assetType: 'Photos',
+      mimeTypes: ['image/jpeg'],
+    })
+      .then(p => {
+        setPhotos({open: true, content: p.edges});
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  }, []);
+
+  const selectPhoto = photo => {
+    setPhotos({open: false, content: [], selectedPhoto: photo});
+  };
   /**
    * SafeAreaView - applicable only on iOS, for rendering content only in view
    * StatusBar - the zone a the top with wifi signal, time, battery
@@ -92,6 +119,15 @@ function App(): JSX.Element {
           <Separator />
           <View style={styles.screenContainer}>
             <Button title="open" onPress={openCameraRoll} />
+
+            <View>
+              <DisplayCameraRoll
+                photos={photos.content}
+                onSelect={selectPhoto}
+              />
+              <Text>{photos.content.length} Photos content</Text>
+              <Text>{photos.selectedPhoto?.node?.image?.filename}</Text>
+            </View>
           </View>
         </View>
       </ScrollView>
