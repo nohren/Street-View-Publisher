@@ -7,6 +7,7 @@ import {
   Text,
   useColorScheme,
   View,
+  Modal,
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -32,6 +33,8 @@ interface State {
   location: Record<string, number>;
   modificationTimestamp: number;
   timestamp: number;
+  isErrorState: boolean;
+  errorMessage: string;
 }
 
 interface Result {
@@ -45,10 +48,26 @@ interface Result {
   authorizeAdditionalParameters: Record<string, unknown>;
 }
 
+interface Error {
+  code: string;
+  domain: string;
+  message: string;
+  nativeStackIOS: string[];
+  userInfo: Record<string, unknown>;
+  stack: string;
+}
+
 type AppActions =
   | {
-      type: 'login';
+      type: 'login-success';
       payload: Result;
+    }
+  | {
+      type: 'login-error';
+      payload: Error;
+    }
+  | {
+      type: 'reset-errorState';
     }
   | {
       type: 'select-image';
@@ -62,7 +81,7 @@ type AppActions =
 
 function reducer(state: State, action: AppActions) {
   switch (action.type) {
-    case 'login':
+    case 'login-success':
       const {accessToken, refreshToken, tokenType, accessTokenExpirationDate} =
         action.payload ?? {};
       return {
@@ -72,6 +91,13 @@ function reducer(state: State, action: AppActions) {
         tokenType,
         accessTokenExpirationDate,
         isTokenValid: true,
+      };
+    case 'login-error':
+      const {message} = action.payload ?? {};
+      return {
+        ...state,
+        isErrorState: true,
+        errorMessage: message,
       };
     case 'select-image':
       const {image, location, modificationTimeStamp, timestamp} =
@@ -83,6 +109,12 @@ function reducer(state: State, action: AppActions) {
         modificationTimeStamp,
         timestamp,
       };
+    case 'reset-errorState':
+      return {
+        ...state,
+        isErrorState: false,
+        errorMessage: '',
+      };
   }
 }
 
@@ -90,6 +122,8 @@ const initialState = {
   accessToken: '',
   refreshToken: '',
   isTokenValid: false,
+  isErrorState: false,
+  errorMessage: '',
   accessTokenExpirationDate: '',
   tokenType: '',
   image: {},
@@ -104,7 +138,8 @@ function App(): JSX.Element {
    * access token and camera selections
    */
   const [state, dispatch] = useReducer(reducer, initialState);
-  const {isTokenValid, accessTokenExpirationDate} = state;
+  const {isTokenValid, accessTokenExpirationDate, isErrorState, errorMessage} =
+    state;
   /**
    * Check app color scheme
    */
@@ -140,11 +175,15 @@ function App(): JSX.Element {
 
   const handleLogin = async () => {
     try {
-      const result = (await handleAuthorize()) as unknown as Result;
-      dispatch({type: 'login', payload: result});
+      const result = (await handleAuthorize()) as Result;
+      dispatch({type: 'login-success', payload: result});
     } catch (e) {
-      console.error(e);
+      dispatch({type: 'login-error', payload: e as Error});
     }
+  };
+
+  const resetErrorState = () => {
+    dispatch({type: 'reset-errorState'});
   };
 
   /**
@@ -167,6 +206,19 @@ function App(): JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
+          {isErrorState && (
+            <View style={styles.centeredView}>
+              <Modal animationType="slide" visible={true} transparent={false}>
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <Text>{errorMessage}</Text>
+                    <Separator />
+                    <Button title="Close" onPress={resetErrorState} />
+                  </View>
+                </View>
+              </Modal>
+            </View>
+          )}
           <Section title="Step One">
             <Text style={styles.highlight}>Login</Text> to your Google account
           </Section>
@@ -221,6 +273,27 @@ const styles = StyleSheet.create({
   },
   success: {
     // backgroundColor: 'green',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
 
