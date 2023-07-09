@@ -13,11 +13,11 @@ import {
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {Button, Separator, Section} from './Components/CustomComponents';
 import ImagePicker from 'react-native-image-crop-picker';
-import {handleAuthorize} from './Network/networkHandler';
-import {isEmpty} from './utils/utils';
+import {login, publish} from './Network/networkManager';
+import {isEmpty, isNil} from './utils/utils';
+import Config from 'react-native-config';
 
-console.log(process.env);
-console.log('hey');
+const API_KEY = Config.API_KEY ?? '';
 
 interface State {
   accessToken: string;
@@ -41,7 +41,7 @@ const initialState = {
   errorMessage: '',
 } as State;
 
-interface Image {
+export interface Image {
   creationDate: string;
   filename: string;
   height: number;
@@ -172,6 +172,7 @@ function App(): JSX.Element {
     isErrorState,
     errorMessage,
     image,
+    accessToken,
   } = state;
 
   /**
@@ -187,7 +188,7 @@ function App(): JSX.Element {
    */
   const handleLogin = async () => {
     try {
-      const result = (await handleAuthorize()) as Result;
+      const result = (await login()) as Result;
       dispatch({type: 'login-success', payload: result});
     } catch (e) {
       dispatch({type: 'error', payload: e as Error});
@@ -207,7 +208,7 @@ function App(): JSX.Element {
       });
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!isTokenValid) {
       dispatch({
         type: 'error',
@@ -222,8 +223,28 @@ function App(): JSX.Element {
       });
       return;
     }
+
+    //no gps data
+    if (isNil((image as Image)?.exif?.['{GPS}']?.Latitude)) {
+      dispatch({
+        type: 'error',
+        payload: {
+          message: 'Whoops, this image has no GPS Data!  Select another image.',
+        } as Error,
+      });
+      return;
+    }
     //All looks good, publish here we go!
-    //call 1/3
+    publish(API_KEY, accessToken, image as Image)
+      .then(response => {
+        console.log(response);
+      })
+      .catch(e => {
+        dispatch({
+          type: 'error',
+          payload: e as Error,
+        });
+      });
   };
 
   const resetErrorState = () => {
