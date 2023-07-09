@@ -243,52 +243,42 @@ function App(): JSX.Element {
   };
 
   const handlePublish = async () => {
-    // if (!isTokenValid) {
-    //   dispatch({
-    //     type: 'error',
-    //     payload: {message: 'Whoops, please first login!'} as Error,
-    //   });
-    //   return;
-    // }
-    // if (isEmpty(image)) {
-    //   dispatch({
-    //     type: 'error',
-    //     payload: {message: 'Whoops, please first select an image!'} as Error,
-    //   });
-    //   return;
-    // }
+    if (!isTokenValid) {
+      dispatch({
+        type: 'error',
+        payload: {message: 'Whoops, please first login!'} as Error,
+      });
+      return;
+    }
+    if (isEmpty(image)) {
+      dispatch({
+        type: 'error',
+        payload: {message: 'Whoops, please first select an image!'} as Error,
+      });
+      return;
+    }
 
-    // //no gps data
-    // if (isNil((image as Image)?.exif?.['{GPS}']?.Latitude)) {
-    //   dispatch({
-    //     type: 'error',
-    //     payload: {
-    //       message: 'Whoops, this image has no GPS Data!  Select another image.',
-    //     } as Error,
-    //   });
-    //   return;
-    // }
+    //no gps data
+    if (isNil((image as Image)?.exif?.['{GPS}']?.Latitude)) {
+      dispatch({
+        type: 'error',
+        payload: {
+          message: 'Whoops, this image has no GPS Data!  Select another image.',
+        } as Error,
+      });
+      return;
+    }
     //All looks good, publish here we go!
-    // publish(API_KEY, accessToken, image as Image)
-    //   .then(response => {
-    //     dispatch({type: 'success', payload: {...response, message: 'Success'}});
-    //   })
-    //   .catch(e => {
-    //     dispatch({
-    //       type: 'error',
-    //       payload: e as Error,
-    //     });
-    //   });
-    dispatch({
-      type: 'success',
-      payload: {
-        shareLink:
-          'https://www.google.com/maps/@0,0,0a,90y,90t/data=!3m4!1e1!3m2!1sAF1QipN5yTWE70A-3fIkHH4WJ7NW80ylugBiJRDhQEN2!2e10',
-        mapsPublishStatus: 'PUBLISHED',
-        uploadTime: '2023-07-09T20:57:41Z',
-        message: 'Success!',
-      },
-    });
+    publish(API_KEY, accessToken, image as Image)
+      .then(response => {
+        dispatch({type: 'success', payload: {...response, message: 'Success'}});
+      })
+      .catch(e => {
+        dispatch({
+          type: 'error',
+          payload: e as Error,
+        });
+      });
   };
 
   const resetErrorState = () => {
@@ -368,7 +358,9 @@ function App(): JSX.Element {
           <View style={styles.screenContainer}>
             <Button title="Select" onPress={handlePick} />
             <Separator />
-            {!isEmpty(image) && <Text>✅ {image.filename} selected</Text>}
+            {!isEmpty(image) && (
+              <Text>✅ {(image as Image).filename} selected</Text>
+            )}
           </View>
           <Section title="Step Three">
             <Text style={styles.highlight}>Publish</Text> to GoogleEarth
