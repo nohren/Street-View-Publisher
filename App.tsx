@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useReducer} from 'react';
+import React, {useReducer} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -11,30 +11,75 @@ import {
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {
-  Button,
-  DisplayCameraRoll,
-  Separator,
-  Section,
-} from './Components/CustomComponents';
-import {
-  CameraRoll,
-  PhotoIdentifier,
-} from '@react-native-camera-roll/camera-roll';
+import {Button, Separator, Section} from './Components/CustomComponents';
+import ImagePicker from 'react-native-image-crop-picker';
 import {handleAuthorize} from './Network/networkHandler';
+import {isEmpty} from './utils/utils';
+
+console.log(process.env);
+console.log('hey');
 
 interface State {
   accessToken: string;
   refreshToken: string;
-  tokenType: string;
-  accessTokenExpirationDate: string;
   isTokenValid: boolean;
-  image: Record<string, string | number | null>;
-  location: Record<string, number>;
-  modificationTimestamp: number;
-  timestamp: number;
+  accessTokenExpirationDate: string;
+  tokenType: string;
+  image: Image | {};
   isErrorState: boolean;
   errorMessage: string;
+}
+
+const initialState = {
+  accessToken: '',
+  refreshToken: '',
+  isTokenValid: false,
+  accessTokenExpirationDate: '',
+  tokenType: '',
+  image: {},
+  isErrorState: false,
+  errorMessage: '',
+} as State;
+
+interface Image {
+  creationDate: string;
+  filename: string;
+  height: number;
+  localIdentifier: string;
+  mime: string;
+  modificationDate: string;
+  path: string;
+  size: number;
+  sourceURL: string;
+  width: number;
+  exif: {
+    '{GPS}': {
+      ImgDirection: number;
+      LatitudeRef: string;
+      Latitude: number;
+      TimeStamp: string;
+      LongitudeRef: string;
+      AltitudeRef: number;
+      GPSVersion: number[];
+      Altitude: number;
+      Longitude: number;
+      DateStamp: string;
+      ImgDirectionRef: string;
+      MapDatum: string;
+    };
+    '{TIFF}': {
+      Copyright: string;
+      ResolutionUnit: number;
+      Software: string;
+      DateTime: string;
+      XResolution: number;
+      ImageDescription: number;
+      YResolution: number;
+      Model: string;
+      Make: string;
+      Orientation: number;
+    };
+  };
 }
 
 interface Result {
@@ -63,7 +108,7 @@ type AppActions =
       payload: Result;
     }
   | {
-      type: 'login-error';
+      type: 'error';
       payload: Error;
     }
   | {
@@ -71,12 +116,10 @@ type AppActions =
     }
   | {
       type: 'select-image';
-      payload: {
-        image: Record<string, string | number | null>;
-        location: Record<string, number>;
-        modificationTimeStamp: number;
-        timestamp: number;
-      };
+      payload: Image;
+    }
+  | {
+      type: 'remove-image';
     };
 
 function reducer(state: State, action: AppActions) {
@@ -92,7 +135,7 @@ function reducer(state: State, action: AppActions) {
         accessTokenExpirationDate,
         isTokenValid: true,
       };
-    case 'login-error':
+    case 'error':
       const {message} = action.payload ?? {};
       return {
         ...state,
@@ -100,14 +143,14 @@ function reducer(state: State, action: AppActions) {
         errorMessage: message,
       };
     case 'select-image':
-      const {image, location, modificationTimeStamp, timestamp} =
-        action.payload ?? {};
       return {
         ...state,
-        image,
-        location,
-        modificationTimeStamp,
-        timestamp,
+        image: action.payload,
+      };
+    case 'remove-image':
+      return {
+        ...state,
+        image: {},
       };
     case 'reset-errorState':
       return {
@@ -118,68 +161,69 @@ function reducer(state: State, action: AppActions) {
   }
 }
 
-const initialState = {
-  accessToken: '',
-  refreshToken: '',
-  isTokenValid: false,
-  isErrorState: false,
-  errorMessage: '',
-  accessTokenExpirationDate: '',
-  tokenType: '',
-  image: {},
-  location: {},
-  modificationTimestamp: 0,
-  timestamp: 0,
-} as State;
-
 function App(): JSX.Element {
   /**
-   * state management
-   * access token and camera selections
+   State management
    */
   const [state, dispatch] = useReducer(reducer, initialState);
-  const {isTokenValid, accessTokenExpirationDate, isErrorState, errorMessage} =
-    state;
+  const {
+    isTokenValid,
+    accessTokenExpirationDate,
+    isErrorState,
+    errorMessage,
+    image,
+  } = state;
+
   /**
    * Check app color scheme
    */
   const isDarkMode = useColorScheme() === 'dark';
-
-  const [photos, setPhotos] = useState({
-    open: false,
-    content: [] as PhotoIdentifier[],
-    selectedPhoto: {},
-  });
-
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
 
-  const openCameraRoll = useCallback(() => {
-    CameraRoll.getPhotos({
-      first: 20,
-      assetType: 'Photos',
-      mimeTypes: ['image/jpeg'],
-    })
-      .then(p => {
-        setPhotos({open: true, content: p.edges});
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }, []);
-
-  const selectPhoto = photo => {
-    setPhotos({open: false, content: [], selectedPhoto: photo});
-  };
-
+  /**
+   * Click handlers
+   */
   const handleLogin = async () => {
     try {
       const result = (await handleAuthorize()) as Result;
       dispatch({type: 'login-success', payload: result});
     } catch (e) {
-      dispatch({type: 'login-error', payload: e as Error});
+      dispatch({type: 'error', payload: e as Error});
     }
+  };
+
+  const handlePick = () => {
+    ImagePicker.openPicker({
+      cropping: false,
+      includeExif: true,
+    })
+      .then(image => {
+        dispatch({type: 'select-image', payload: image as Image});
+      })
+      .catch(e => {
+        dispatch({type: 'remove-image'});
+      });
+  };
+
+  const handlePublish = () => {
+    if (!isTokenValid) {
+      dispatch({
+        type: 'error',
+        payload: {message: 'Whoops, please first login!'} as Error,
+      });
+      return;
+    }
+    if (isEmpty(image)) {
+      dispatch({
+        type: 'error',
+        payload: {message: 'Whoops, please first select an image!'} as Error,
+      });
+      return;
+    }
+    //All looks good, publish here we go!
+    //call 1/3
   };
 
   const resetErrorState = () => {
@@ -187,6 +231,8 @@ function App(): JSX.Element {
   };
 
   /**
+   * Render area
+   *
    * SafeAreaView - applicable only on iOS, for rendering content only in view
    * StatusBar - the zone a the top with wifi signal, time, battery
    * ScrollView - a component where everything inside can scroll
@@ -238,15 +284,9 @@ function App(): JSX.Element {
           </Section>
           <Separator />
           <View style={styles.screenContainer}>
-            <Button title="Select" onPress={openCameraRoll} />
-            <View>
-              <DisplayCameraRoll
-                photos={photos.content}
-                onSelect={selectPhoto}
-              />
-              <Text>{photos.content.length} Photos content</Text>
-              <Text>{photos.selectedPhoto?.node?.image?.filename}</Text>
-            </View>
+            <Button title="Select" onPress={handlePick} />
+            <Separator />
+            {!isEmpty(image) && <Text>✅ {image.filename} selected</Text>}
           </View>
           <Section title="Step Three">
             <Text style={styles.highlight}>Publish</Text> to GoogleEarth
@@ -254,7 +294,7 @@ function App(): JSX.Element {
           </Section>
           <Separator />
           <View style={styles.screenContainer}>
-            <Button title="Publish" onPress={() => {}} />
+            <Button title="Publish" onPress={handlePublish} />
           </View>
         </View>
       </ScrollView>

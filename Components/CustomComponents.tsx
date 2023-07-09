@@ -4,8 +4,6 @@ import {
   TouchableOpacity,
   Text,
   View,
-  ScrollView,
-  Image,
   useColorScheme,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -26,33 +24,6 @@ export const Button = ({onPress, title}: ButtonProps) => (
 );
 
 export const Separator = () => <View style={styles.separator} />;
-
-export const DisplayCameraRoll = ({photos, onSelect}) => {
-  //todo, some way to select a photo
-  return (
-    <View>
-      <Separator />
-      <ScrollView>
-        {photos.map(p => {
-          return (
-            <TouchableOpacity
-              onPress={() => onSelect(p)}
-              key={p.node.image.filename}
-              style={styles.appButtonContainer}>
-              <Image
-                style={{
-                  width: 100,
-                  height: 100,
-                }}
-                source={{uri: p.node.image.uri}}
-              />
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-};
 
 /**
  * Text is a react component for natively showing text
