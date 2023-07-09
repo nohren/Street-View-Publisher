@@ -116,6 +116,7 @@ export interface Success {
   shareLink?: string;
   mapsPublishStatus?: string;
   uploadTime?: string;
+  captureTime?: string;
 }
 
 type AppActions =
@@ -271,7 +272,18 @@ function App(): JSX.Element {
     //All looks good, publish here we go!
     publish(API_KEY, accessToken, image as Image)
       .then(response => {
-        dispatch({type: 'success', payload: {...response, message: 'Success'}});
+        const {captureTime, shareLink, mapsPublishStatus, uploadTime} =
+          response;
+        dispatch({
+          type: 'success',
+          payload: {
+            captureTime,
+            shareLink,
+            mapsPublishStatus,
+            uploadTime,
+            message: 'Success!',
+          },
+        });
       })
       .catch(e => {
         dispatch({

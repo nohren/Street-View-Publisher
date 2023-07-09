@@ -34,6 +34,9 @@ export const MessageGenerator = ({values}: MessageGeneratorProps) => {
   const jsx = [];
   const {message, ...rest} = values;
   for (const [key, value] of Object.entries(rest)) {
+    if (typeof value !== 'string') {
+      continue;
+    }
     const _key = key.replace(/([A-Z])/g, ' $1');
     jsx.push(
       <Text style={styles.lineSeparation} key={key}>
@@ -44,7 +47,9 @@ export const MessageGenerator = ({values}: MessageGeneratorProps) => {
           </Text>
         ) : (
           <Text>
-            {key === 'uploadTime' ? new Date(value).toString() : value}
+            {key === 'uploadTime' || key === 'captureTime'
+              ? new Date(value).toString()
+              : value}
           </Text>
         )}
       </Text>,
