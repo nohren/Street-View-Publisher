@@ -1,12 +1,4 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React, {useState, useCallback} from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useState, useCallback, useReducer} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -22,49 +14,102 @@ import {
   Button,
   DisplayCameraRoll,
   Separator,
+  Section,
 } from './Components/CustomComponents';
 import {
   CameraRoll,
   PhotoIdentifier,
 } from '@react-native-camera-roll/camera-roll';
-import {isEmpty} from './utils/utils';
+import {handleAuthorize} from './Network/networkHandler';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-/**
- * Text is a react component for natively showing text
- * style is jss
- */
-function Section({children, title}: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+interface State {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  accessTokenExpirationDate: string;
+  isTokenValid: boolean;
+  image: Record<string, string | number | null>;
+  location: Record<string, number>;
+  modificationTimestamp: number;
+  timestamp: number;
 }
 
+interface Result {
+  scopes: string[]; // ["https://www.googleapis.com/auth/streetviewpublish"]
+  accessTokenExpirationDate: string; // "2023-07-09T02:21:30Z"
+  refreshToken: string;
+  tokenType: string;
+  accessToken: string;
+  tokenAdditionalParameters: Record<string, unknown>;
+  idToken: string;
+  authorizeAdditionalParameters: Record<string, unknown>;
+}
+
+type AppActions =
+  | {
+      type: 'login';
+      payload: Result;
+    }
+  | {
+      type: 'select-image';
+      payload: {
+        image: Record<string, string | number | null>;
+        location: Record<string, number>;
+        modificationTimeStamp: number;
+        timestamp: number;
+      };
+    };
+
+function reducer(state: State, action: AppActions) {
+  switch (action.type) {
+    case 'login':
+      const {accessToken, refreshToken, tokenType, accessTokenExpirationDate} =
+        action.payload ?? {};
+      return {
+        ...state,
+        accessToken,
+        refreshToken,
+        tokenType,
+        accessTokenExpirationDate,
+        isTokenValid: true,
+      };
+    case 'select-image':
+      const {image, location, modificationTimeStamp, timestamp} =
+        action.payload ?? {};
+      return {
+        ...state,
+        image,
+        location,
+        modificationTimeStamp,
+        timestamp,
+      };
+  }
+}
+
+const initialState = {
+  accessToken: '',
+  refreshToken: '',
+  isTokenValid: false,
+  accessTokenExpirationDate: '',
+  tokenType: '',
+  image: {},
+  location: {},
+  modificationTimestamp: 0,
+  timestamp: 0,
+} as State;
+
 function App(): JSX.Element {
+  /**
+   * state management
+   * access token and camera selections
+   */
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const {isTokenValid, accessTokenExpirationDate} = state;
+  /**
+   * Check app color scheme
+   */
   const isDarkMode = useColorScheme() === 'dark';
+
   const [photos, setPhotos] = useState({
     open: false,
     content: [] as PhotoIdentifier[],
@@ -92,6 +137,16 @@ function App(): JSX.Element {
   const selectPhoto = photo => {
     setPhotos({open: false, content: [], selectedPhoto: photo});
   };
+
+  const handleLogin = async () => {
+    try {
+      const result = (await handleAuthorize()) as unknown as Result;
+      dispatch({type: 'login', payload: result});
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   /**
    * SafeAreaView - applicable only on iOS, for rendering content only in view
    * StatusBar - the zone a the top with wifi signal, time, battery
@@ -113,13 +168,25 @@ function App(): JSX.Element {
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
           <Section title="Step One">
-            Open <Text style={styles.highlight}>Camera Roll</Text> to select 360
-            photo.
+            <Text style={styles.highlight}>Login</Text> to your Google account
           </Section>
           <Separator />
           <View style={styles.screenContainer}>
-            <Button title="open" onPress={openCameraRoll} />
-
+            {!isTokenValid ? (
+              <Button title="Login" onPress={handleLogin} />
+            ) : (
+              <Text style={styles.success}>
+                ✅ Success! Token expires {`${accessTokenExpirationDate}`}
+              </Text>
+            )}
+          </View>
+          <Section title="Step Two">
+            <Text style={styles.highlight}>Select</Text> a 360 photo from the
+            camera roll
+          </Section>
+          <Separator />
+          <View style={styles.screenContainer}>
+            <Button title="Select" onPress={openCameraRoll} />
             <View>
               <DisplayCameraRoll
                 photos={photos.content}
@@ -129,6 +196,14 @@ function App(): JSX.Element {
               <Text>{photos.selectedPhoto?.node?.image?.filename}</Text>
             </View>
           </View>
+          <Section title="Step Three">
+            <Text style={styles.highlight}>Publish</Text> to GoogleEarth
+            streetview
+          </Section>
+          <Separator />
+          <View style={styles.screenContainer}>
+            <Button title="Publish" onPress={() => {}} />
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -136,19 +211,6 @@ function App(): JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
   highlight: {
     fontWeight: '700',
   },
@@ -156,6 +218,9 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     padding: 20,
+  },
+  success: {
+    // backgroundColor: 'green',
   },
 });
 

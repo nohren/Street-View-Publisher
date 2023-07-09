@@ -2,6 +2,17 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>org.reactjs.native.example.StreetViewPublisher</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>com.googleusercontent.apps.544423402645-94akramas0s2v26dplmrd7ulfdirk11b</string>
+        </array>
+      </dict>
+    </array>
     <key>NSPhotoLibraryUsageDescription</key> 
 	<string>Street View Publisher needs access to the camera roll in order to publish 360 photos</string>
 	<key>CFBundleDevelopmentRegion</key>

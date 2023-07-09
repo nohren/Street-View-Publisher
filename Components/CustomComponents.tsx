@@ -6,9 +6,14 @@ import {
   View,
   ScrollView,
   Image,
-  Pressable,
+  useColorScheme,
 } from 'react-native';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import type {PropsWithChildren} from 'react';
 
+type SectionProps = PropsWithChildren<{
+  title: string;
+}>;
 interface ButtonProps {
   title: string;
   onPress: () => void;
@@ -49,6 +54,36 @@ export const DisplayCameraRoll = ({photos, onSelect}) => {
   );
 };
 
+/**
+ * Text is a react component for natively showing text
+ * style is jss
+ */
+export const Section = ({children, title}: SectionProps): JSX.Element => {
+  const isDarkMode = useColorScheme() === 'dark';
+  return (
+    <View style={styles.sectionContainer}>
+      <Text
+        style={[
+          styles.sectionTitle,
+          {
+            color: isDarkMode ? Colors.white : Colors.black,
+          },
+        ]}>
+        {title}
+      </Text>
+      <Text
+        style={[
+          styles.sectionDescription,
+          {
+            color: isDarkMode ? Colors.light : Colors.dark,
+          },
+        ]}>
+        {children}
+      </Text>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   appButtonContainer: {
     elevation: 8,
@@ -68,5 +103,18 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     borderBottomColor: '#737373',
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sectionContainer: {
+    marginTop: 32,
+    paddingHorizontal: 24,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+  },
+  sectionDescription: {
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: '400',
   },
 });
