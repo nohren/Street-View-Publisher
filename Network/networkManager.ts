@@ -91,12 +91,13 @@ const uploadMeta = async (
   };
 
   try {
-    return await (
+    const res = await (
       await fetch(
         `https://streetviewpublish.googleapis.com/v1/photo?key=${API_KEY}`,
         requestOptions,
       )
     ).text();
+    return JSON.parse(res);
   } catch (e) {
     return e;
   }

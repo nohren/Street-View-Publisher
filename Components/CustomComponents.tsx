@@ -5,9 +5,11 @@ import {
   Text,
   View,
   useColorScheme,
+  Linking,
 } from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import type {PropsWithChildren} from 'react';
+import {Success} from '../App';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -24,6 +26,38 @@ export const Button = ({onPress, title}: ButtonProps) => (
 );
 
 export const Separator = () => <View style={styles.separator} />;
+
+type MessageGeneratorProps = PropsWithChildren<{
+  values: Success;
+}>;
+export const MessageGenerator = ({values}: MessageGeneratorProps) => {
+  const jsx = [];
+  const {message, ...rest} = values;
+  for (const [key, value] of Object.entries(rest)) {
+    const _key = key.replace(/([A-Z])/g, ' $1');
+    jsx.push(
+      <Text style={styles.lineSeparation} key={key}>
+        <Text style={styles.highlight}>{`${_key}: `}</Text>
+        {key === 'shareLink' ? (
+          <Text style={styles.link} onPress={() => Linking.openURL(value)}>
+            {value}
+          </Text>
+        ) : (
+          <Text>
+            {key === 'uploadTime' ? new Date(value).toString() : value}
+          </Text>
+        )}
+      </Text>,
+    );
+  }
+  return (
+    <View>
+      <Text style={styles.centerTitle}>{message}</Text>
+      <Separator />
+      {jsx}
+    </View>
+  );
+};
 
 /**
  * Text is a react component for natively showing text
@@ -87,5 +121,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 18,
     fontWeight: '400',
+  },
+  centerTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    alignSelf: 'center',
+  },
+  lineSeparation: {
+    marginTop: 12,
+  },
+  highlight: {
+    fontWeight: '700',
+    textTransform: 'capitalize',
+  },
+  link: {
+    color: '#0174CC',
   },
 });

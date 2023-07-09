@@ -11,7 +11,12 @@ import {
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {Button, Separator, Section} from './Components/CustomComponents';
+import {
+  Button,
+  Separator,
+  Section,
+  MessageGenerator,
+} from './Components/CustomComponents';
 import ImagePicker from 'react-native-image-crop-picker';
 import {login, publish} from './Network/networkManager';
 import {isEmpty, isNil} from './utils/utils';
@@ -28,6 +33,8 @@ interface State {
   image: Image | {};
   isErrorState: boolean;
   errorMessage: string;
+  isSuccessState: boolean;
+  success: Record<string, any>;
 }
 
 const initialState = {
@@ -39,6 +46,8 @@ const initialState = {
   image: {},
   isErrorState: false,
   errorMessage: '',
+  isSuccessState: false,
+  success: {},
 } as State;
 
 export interface Image {
@@ -102,6 +111,13 @@ interface Error {
   stack: string;
 }
 
+export interface Success {
+  message: string;
+  shareLink?: string;
+  mapsPublishStatus?: string;
+  uploadTime?: string;
+}
+
 type AppActions =
   | {
       type: 'login-success';
@@ -120,7 +136,12 @@ type AppActions =
     }
   | {
       type: 'remove-image';
-    };
+    }
+  | {
+      type: 'success';
+      payload: Success;
+    }
+  | {type: 'reset-successState'};
 
 function reducer(state: State, action: AppActions) {
   switch (action.type) {
@@ -136,11 +157,10 @@ function reducer(state: State, action: AppActions) {
         isTokenValid: true,
       };
     case 'error':
-      const {message} = action.payload ?? {};
       return {
         ...state,
         isErrorState: true,
-        errorMessage: message,
+        errorMessage: action.payload?.message,
       };
     case 'select-image':
       return {
@@ -158,6 +178,18 @@ function reducer(state: State, action: AppActions) {
         isErrorState: false,
         errorMessage: '',
       };
+    case 'success':
+      return {
+        ...state,
+        isSuccessState: true,
+        success: action.payload,
+      };
+    case 'reset-successState':
+      return {
+        ...state,
+        isSuccessState: false,
+        success: {},
+      };
   }
 }
 
@@ -173,6 +205,8 @@ function App(): JSX.Element {
     errorMessage,
     image,
     accessToken,
+    isSuccessState,
+    success,
   } = state;
 
   /**
@@ -209,46 +243,60 @@ function App(): JSX.Element {
   };
 
   const handlePublish = async () => {
-    if (!isTokenValid) {
-      dispatch({
-        type: 'error',
-        payload: {message: 'Whoops, please first login!'} as Error,
-      });
-      return;
-    }
-    if (isEmpty(image)) {
-      dispatch({
-        type: 'error',
-        payload: {message: 'Whoops, please first select an image!'} as Error,
-      });
-      return;
-    }
+    // if (!isTokenValid) {
+    //   dispatch({
+    //     type: 'error',
+    //     payload: {message: 'Whoops, please first login!'} as Error,
+    //   });
+    //   return;
+    // }
+    // if (isEmpty(image)) {
+    //   dispatch({
+    //     type: 'error',
+    //     payload: {message: 'Whoops, please first select an image!'} as Error,
+    //   });
+    //   return;
+    // }
 
-    //no gps data
-    if (isNil((image as Image)?.exif?.['{GPS}']?.Latitude)) {
-      dispatch({
-        type: 'error',
-        payload: {
-          message: 'Whoops, this image has no GPS Data!  Select another image.',
-        } as Error,
-      });
-      return;
-    }
+    // //no gps data
+    // if (isNil((image as Image)?.exif?.['{GPS}']?.Latitude)) {
+    //   dispatch({
+    //     type: 'error',
+    //     payload: {
+    //       message: 'Whoops, this image has no GPS Data!  Select another image.',
+    //     } as Error,
+    //   });
+    //   return;
+    // }
     //All looks good, publish here we go!
-    publish(API_KEY, accessToken, image as Image)
-      .then(response => {
-        console.log(response);
-      })
-      .catch(e => {
-        dispatch({
-          type: 'error',
-          payload: e as Error,
-        });
-      });
+    // publish(API_KEY, accessToken, image as Image)
+    //   .then(response => {
+    //     dispatch({type: 'success', payload: {...response, message: 'Success'}});
+    //   })
+    //   .catch(e => {
+    //     dispatch({
+    //       type: 'error',
+    //       payload: e as Error,
+    //     });
+    //   });
+    dispatch({
+      type: 'success',
+      payload: {
+        shareLink:
+          'https://www.google.com/maps/@0,0,0a,90y,90t/data=!3m4!1e1!3m2!1sAF1QipN5yTWE70A-3fIkHH4WJ7NW80ylugBiJRDhQEN2!2e10',
+        mapsPublishStatus: 'PUBLISHED',
+        uploadTime: '2023-07-09T20:57:41Z',
+        message: 'Success!',
+      },
+    });
   };
 
   const resetErrorState = () => {
     dispatch({type: 'reset-errorState'});
+  };
+
+  const resetSuccessState = () => {
+    dispatch({type: 'reset-successState'});
   };
 
   /**
@@ -281,6 +329,19 @@ function App(): JSX.Element {
                     <Text>{errorMessage}</Text>
                     <Separator />
                     <Button title="Close" onPress={resetErrorState} />
+                  </View>
+                </View>
+              </Modal>
+            </View>
+          )}
+          {isSuccessState && (
+            <View style={styles.centeredView}>
+              <Modal animationType="slide" visible={true} transparent={false}>
+                <View style={styles.centeredView}>
+                  <View style={styles.modalView}>
+                    <MessageGenerator values={success} />
+                    <Separator />
+                    <Button title="Close" onPress={resetSuccessState} />
                   </View>
                 </View>
               </Modal>
