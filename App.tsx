@@ -1,4 +1,4 @@
-import React, {useReducer} from 'react';
+import React, {useEffect, useReducer} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -21,6 +21,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import {login, publish} from './Network/networkManager';
 import {isEmpty, isNil} from './utils/utils';
 import Config from 'react-native-config';
+import SplashScreen from 'react-native-splash-screen';
 
 const API_KEY = Config.API_KEY ?? '';
 
@@ -222,6 +223,15 @@ function App(): JSX.Element {
   } = state;
 
   /**
+   * splash screen controls
+   */
+  useEffect(() => {
+    setTimeout(() => {
+      SplashScreen.hide();
+    }, 6500);
+  }, []);
+
+  /**
    * Check app color scheme
    */
   const isDarkMode = useColorScheme() === 'dark';
@@ -381,7 +391,8 @@ function App(): JSX.Element {
               <Button title="Login" onPress={handleLogin} />
             ) : (
               <Text style={styles.success}>
-                ✅ Success! Token expires {`${accessTokenExpirationDate}`}
+                ✅ Success! Token expires{' '}
+                {`${new Date(accessTokenExpirationDate)}`}
               </Text>
             )}
           </View>

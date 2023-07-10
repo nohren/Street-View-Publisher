@@ -42,9 +42,14 @@ export const MessageGenerator = ({values}: MessageGeneratorProps) => {
       <Text style={styles.lineSeparation} key={key}>
         <Text style={styles.highlight}>{`${_key}: `}</Text>
         {key === 'shareLink' ? (
-          <Text style={styles.link} onPress={() => Linking.openURL(value)}>
-            {value}
-          </Text>
+          <View>
+            <Text style={styles.link} onPress={() => Linking.openURL(value)}>
+              {value}
+            </Text>
+            <Text style={styles.lineSeparation}>
+              ⬆️ Link may take a minute to activate
+            </Text>
+          </View>
         ) : (
           <Text>
             {key === 'uploadTime' || key === 'captureTime'
