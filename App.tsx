@@ -245,6 +245,7 @@ function App(): JSX.Element {
     ImagePicker.openPicker({
       cropping: false,
       includeExif: true,
+      multiple: false,
     })
       .then(image => {
         dispatch({type: 'select-image', payload: image as Image});
@@ -271,7 +272,10 @@ function App(): JSX.Element {
     }
 
     //no gps data
-    if (isNil((image as Image)?.exif?.['{GPS}']?.Latitude)) {
+    if (
+      isNil((image as Image)?.exif?.['{GPS}']?.Latitude) ||
+      isNil((image as Image)?.exif?.['{GPS}']?.Longitude)
+    ) {
       dispatch({
         type: 'error',
         payload: {
