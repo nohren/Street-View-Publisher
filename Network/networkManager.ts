@@ -67,6 +67,15 @@ const uploadMeta = async (
   myHeaders.append('Content-Type', 'application/json');
   myHeaders.append('Authorization', `Bearer ${accessToken}`);
 
+  const latMeridian = {
+    N: 1,
+    S: -1,
+  };
+  const longMeridian = {
+    E: 1,
+    W: -1,
+  };
+
   const raw = JSON.stringify({
     uploadReference: {
       uploadUrl: url,
@@ -74,8 +83,12 @@ const uploadMeta = async (
     pose: {
       heading: image.exif['{GPS}'].ImgDirection,
       latLngPair: {
-        latitude: image.exif['{GPS}'].Latitude,
-        longitude: image.exif['{GPS}'].Longitude,
+        latitude:
+          image.exif['{GPS}'].Latitude *
+          latMeridian[image.exif['{GPS}'].LatitudeRef],
+        longitude:
+          image.exif['{GPS}'].Longitude *
+          longMeridian[image.exif['{GPS}'].LongitudeRef],
       },
     },
     captureTime: {

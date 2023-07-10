@@ -9,7 +9,7 @@ import {
   View,
   Modal,
 } from 'react-native';
-
+import Spinner from 'react-native-loading-spinner-overlay';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {
   Button,
@@ -35,6 +35,7 @@ interface State {
   errorMessage: string;
   isSuccessState: boolean;
   success: Record<string, any>;
+  isLoading: boolean;
 }
 
 const initialState = {
@@ -48,6 +49,7 @@ const initialState = {
   errorMessage: '',
   isSuccessState: false,
   success: {},
+  isLoading: false,
 } as State;
 
 export interface Image {
@@ -64,10 +66,10 @@ export interface Image {
   exif: {
     '{GPS}': {
       ImgDirection: number;
-      LatitudeRef: string;
+      LatitudeRef: 'N' | 'S';
       Latitude: number;
       TimeStamp: string;
-      LongitudeRef: string;
+      LongitudeRef: 'E' | 'W';
       AltitudeRef: number;
       GPSVersion: number[];
       Altitude: number;
@@ -142,7 +144,8 @@ type AppActions =
       type: 'success';
       payload: Success;
     }
-  | {type: 'reset-successState'};
+  | {type: 'reset-successState'}
+  | {type: 'loading'};
 
 function reducer(state: State, action: AppActions) {
   switch (action.type) {
@@ -161,6 +164,7 @@ function reducer(state: State, action: AppActions) {
       return {
         ...state,
         isErrorState: true,
+        isLoading: false,
         errorMessage: action.payload?.message,
       };
     case 'select-image':
@@ -183,6 +187,7 @@ function reducer(state: State, action: AppActions) {
       return {
         ...state,
         isSuccessState: true,
+        isLoading: false,
         success: action.payload,
       };
     case 'reset-successState':
@@ -190,6 +195,11 @@ function reducer(state: State, action: AppActions) {
         ...state,
         isSuccessState: false,
         success: {},
+      };
+    case 'loading':
+      return {
+        ...state,
+        isLoading: true,
       };
   }
 }
@@ -208,6 +218,7 @@ function App(): JSX.Element {
     accessToken,
     isSuccessState,
     success,
+    isLoading,
   } = state;
 
   /**
@@ -269,6 +280,7 @@ function App(): JSX.Element {
       });
       return;
     }
+    dispatch({type: 'loading'});
     //All looks good, publish here we go!
     publish(API_KEY, accessToken, image as Image)
       .then(response => {
@@ -323,6 +335,13 @@ function App(): JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
+          {isLoading && (
+            <Spinner
+              visible={true}
+              textContent="Loading"
+              textStyle={styles.spinnerTextStyle}
+            />
+          )}
           {isErrorState && (
             <View style={styles.centeredView}>
               <Modal animationType="slide" visible={true} transparent={false}>
@@ -420,6 +439,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  spinnerTextStyle: {
+    color: '#FFF',
   },
 });
 
