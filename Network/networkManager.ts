@@ -10,6 +10,13 @@ const authConfig = {
   scopes: ['https://www.googleapis.com/auth/streetviewpublish'],
 };
 
+const primeMeridian = {
+  N: 1,
+  S: -1,
+  E: 1,
+  W: -1,
+};
+
 export const login = () => authorize(authConfig);
 
 interface URLResponse {
@@ -67,15 +74,6 @@ const uploadMeta = async (
   myHeaders.append('Content-Type', 'application/json');
   myHeaders.append('Authorization', `Bearer ${accessToken}`);
 
-  const latMeridian = {
-    N: 1,
-    S: -1,
-  };
-  const longMeridian = {
-    E: 1,
-    W: -1,
-  };
-
   const raw = JSON.stringify({
     uploadReference: {
       uploadUrl: url,
@@ -85,10 +83,10 @@ const uploadMeta = async (
       latLngPair: {
         latitude:
           image.exif['{GPS}'].Latitude *
-          latMeridian[image.exif['{GPS}'].LatitudeRef],
+          primeMeridian[image.exif['{GPS}'].LatitudeRef],
         longitude:
           image.exif['{GPS}'].Longitude *
-          longMeridian[image.exif['{GPS}'].LongitudeRef],
+          primeMeridian[image.exif['{GPS}'].LongitudeRef],
       },
     },
     captureTime: {
