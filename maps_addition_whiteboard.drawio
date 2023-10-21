@@ -1,0 +1,55 @@
+<mxfile host="app.diagrams.net" modified="2023-09-05T16:11:48.754Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36" etag="XNRFMPmkqwUPvJ129kzs" version="21.6.2" type="device">
+  <diagram name="Page-1" id="ySzfFIpZTbhsXr5PSH3g">
+    <mxGraphModel dx="1006" dy="633" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-3" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="yd5rOtcZ2AO0vjDQg0B6-1" target="yd5rOtcZ2AO0vjDQg0B6-2" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-1" value="&lt;meta charset=&quot;utf-8&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0); font-family: Helvetica; font-size: 12px; font-style: normal; font-variant-ligatures: normal; font-variant-caps: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: center; text-indent: 0px; text-transform: none; widows: 2; word-spacing: 0px; -webkit-text-stroke-width: 0px; background-color: rgb(251, 251, 251); text-decoration-thickness: initial; text-decoration-style: initial; text-decoration-color: initial; float: none; display: inline !important;&quot;&gt;Select photo&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="340" y="410" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-5" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="yd5rOtcZ2AO0vjDQg0B6-2" target="yd5rOtcZ2AO0vjDQg0B6-4" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-7" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="yd5rOtcZ2AO0vjDQg0B6-2" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="520" y="610.0000000000002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-8" value="YES" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="yd5rOtcZ2AO0vjDQg0B6-7" vertex="1" connectable="0">
+          <mxGeometry x="-0.2208" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-2" value="is it a jpeg?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="360" y="570" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-4" value="error" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="200" y="570" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-11" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="yd5rOtcZ2AO0vjDQg0B6-9" target="yd5rOtcZ2AO0vjDQg0B6-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-12" value="YES" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="yd5rOtcZ2AO0vjDQg0B6-11" vertex="1" connectable="0">
+          <mxGeometry x="-0.065" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-14" value="NO" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="yd5rOtcZ2AO0vjDQg0B6-9" target="yd5rOtcZ2AO0vjDQg0B6-13" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-9" value="Does it have GPS data?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="520" y="550" width="110" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-10" value="display in google maps where it is showing" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="535" y="770" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="yd5rOtcZ2AO0vjDQg0B6-13" value="Open google maps modal and allow users to pin where the photo is" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="725" y="570" width="95" height="100" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
