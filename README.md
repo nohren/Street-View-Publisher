@@ -2,11 +2,18 @@
 
 Why? As a temporary fix for posting spherical images to Google Earth. It appears Google removed this abilty in favor of spherical video.
 
-Contributors are welcome. Feel free to make a feature branch or provide any comments. App is currently in test flight. Let me know if you want to test.
+Contributors are welcome. I don't plan on adding anymore support unless there is serious interest. App can be downloaded from test flight.
 
-[![Watch the video](https://raw.githubusercontent.com/nohren/my-portfolio/master/_includes/splash.png)](https://youtube.com/shorts/W7wYzxWoawo?si=cwF1yCuLRv48zYqq)
+<a href="https://youtube.com/shorts/W7wYzxWoawo?si=cwF1yCuLRv48zYqq">
+ <img src="https://raw.githubusercontent.com/nohren/my-portfolio/master/_includes/splash.png" align="left" height="708" width="400" />
+</a>
 
-[![Watch the video](https://raw.githubusercontent.com/nohren/my-portfolio/master/_includes/success.png)](https://youtube.com/shorts/ITyGzCaRz7U?si=Tjfc45KyzhqHwMPU)
+<!-- [![Watch the video](https://raw.githubusercontent.com/nohren/my-portfolio/master/_includes/splash.png)](https://youtube.com/shorts/W7wYzxWoawo?si=cwF1yCuLRv48zYqq) -->
+
+<a href="https://youtube.com/shorts/ITyGzCaRz7U?si=Tjfc45KyzhqHwMPU">
+ <img src="https://raw.githubusercontent.com/nohren/my-portfolio/master/_includes/success.png" align="left" height="708" width="400" />
+</a>
+<!-- [![Watch the video](https://raw.githubusercontent.com/nohren/my-portfolio/master/_includes/success.png)](https://youtube.com/shorts/ITyGzCaRz7U?si=Tjfc45KyzhqHwMPU) -->
 
 <h1>Installation instructions</h1>
 
