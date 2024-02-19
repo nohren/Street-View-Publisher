@@ -10,10 +10,9 @@
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
-  [super application:application didFinishLaunchingWithOptions:launchOptions];
-  [RNSplashScreen show];
-
-  return YES;
+  return [super application:application didFinishLaunchingWithOptions:launchOptions];
+  // [RNSplashScreen show]; for react native spash screen and I don't need it
+  // return YES;
 }
 
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler {

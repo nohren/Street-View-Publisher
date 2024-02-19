@@ -225,11 +225,11 @@ function App(): JSX.Element {
   /**
    * splash screen controls
    */
-  useEffect(() => {
-    setTimeout(() => {
-      SplashScreen.hide();
-    }, 6500);
-  }, []);
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     SplashScreen.hide();
+  //   }, 5000);
+  // }, []);
 
   /**
    * Check app color scheme
@@ -237,6 +237,7 @@ function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+    flex: 1,
   };
 
   /**
@@ -342,82 +343,94 @@ function App(): JSX.Element {
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          {isLoading && (
-            <Spinner
-              visible={true}
-              textContent="Loading"
-              textStyle={styles.spinnerTextStyle}
-            />
-          )}
-          {isErrorState && (
-            <View style={styles.centeredView}>
-              <Modal animationType="slide" visible={true} transparent={false}>
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <Text>{errorMessage}</Text>
-                    <Separator />
-                    <Button title="Close" onPress={resetErrorState} />
-                  </View>
-                </View>
-              </Modal>
-            </View>
-          )}
-          {isSuccessState && (
-            <View style={styles.centeredView}>
-              <Modal animationType="slide" visible={true} transparent={false}>
-                <View style={styles.centeredView}>
-                  <View style={styles.modalView}>
-                    <MessageGenerator values={success} />
-                    <Separator />
-                    <Button title="Close" onPress={resetSuccessState} />
-                  </View>
-                </View>
-              </Modal>
-            </View>
-          )}
-          <Section title="Step One">
-            <Text style={styles.highlight}>Login</Text> to your Google account
-          </Section>
-          <Separator />
-          <View style={styles.screenContainer}>
-            {!isTokenValid ? (
-              <Button title="Login" onPress={handleLogin} />
-            ) : (
-              <Text style={styles.success}>
-                ✅ Success! Token expires{' '}
-                {`${new Date(accessTokenExpirationDate)}`}
-              </Text>
+      <View style={{height: '100%'}}>
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          style={backgroundStyle}
+          contentContainerStyle={{flexGrow: 1}}>
+          <View
+            style={{
+              backgroundColor: isDarkMode ? Colors.black : Colors.white,
+              flex: 1,
+            }}>
+            {isLoading && (
+              <Spinner
+                visible={true}
+                textContent="Loading"
+                textStyle={styles.spinnerTextStyle}
+              />
             )}
-          </View>
-          <Section title="Step Two">
-            <Text style={styles.highlight}>Select</Text> a 360 photo from the
-            camera roll
-          </Section>
-          <Separator />
-          <View style={styles.screenContainer}>
-            <Button title="Select" onPress={handlePick} />
-            <Separator />
-            {!isEmpty(image) && (
-              <Text>✅ {(image as Image).filename} selected</Text>
+            {isErrorState && (
+              <View style={styles.centeredView}>
+                <Modal animationType="slide" visible={true} transparent={false}>
+                  <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                      <Text>{errorMessage}</Text>
+                      <Separator />
+                      <Button title="Close" onPress={resetErrorState} />
+                    </View>
+                  </View>
+                </Modal>
+              </View>
             )}
+            {isSuccessState && (
+              <View style={styles.centeredView}>
+                <Modal animationType="slide" visible={true} transparent={false}>
+                  <View style={styles.centeredView}>
+                    <View style={styles.modalView}>
+                      <MessageGenerator values={success} />
+                      <Separator />
+                      <Button title="Close" onPress={resetSuccessState} />
+                    </View>
+                  </View>
+                </Modal>
+              </View>
+            )}
+            <View style={styles.steps}>
+              <Section title="Step One">
+                <Text style={styles.highlight}>Login</Text> to your Google
+                account
+              </Section>
+              <Separator />
+              <View style={styles.screenContainer}>
+                {!isTokenValid ? (
+                  <Button title="Login" onPress={handleLogin} />
+                ) : (
+                  <Text style={styles.success}>
+                    ✅ Success! Token expires{' '}
+                    {`${new Date(accessTokenExpirationDate)}`}
+                  </Text>
+                )}
+              </View>
+            </View>
+            <View style={styles.steps}>
+              <Section title="Step Two">
+                <Text style={styles.highlight}>Select</Text> a 360 photo from
+                the camera roll
+              </Section>
+              <Separator />
+              <View style={styles.screenContainer}>
+                <Button title="Select" onPress={handlePick} />
+                {!isEmpty(image) && (
+                  <Text style={{marginTop: 20}}>
+                    ✅ {(image as Image).filename} selected
+                  </Text>
+                )}
+              </View>
+            </View>
+            <View style={styles.steps}>
+              <Section title="Step Three">
+                <Text style={styles.highlight}>Publish</Text> to GoogleEarth
+                streetview
+              </Section>
+              <Separator />
+              <View style={styles.screenContainer}>
+                <Button title="Publish" onPress={handlePublish} />
+              </View>
+            </View>
           </View>
-          <Section title="Step Three">
-            <Text style={styles.highlight}>Publish</Text> to GoogleEarth
-            streetview
-          </Section>
-          <Separator />
-          <View style={styles.screenContainer}>
-            <Button title="Publish" onPress={handlePublish} />
-          </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -427,7 +440,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   screenContainer: {
-    flex: 1,
     justifyContent: 'center',
     padding: 20,
   },
@@ -457,6 +469,9 @@ const styles = StyleSheet.create({
   },
   spinnerTextStyle: {
     color: '#FFF',
+  },
+  steps: {
+    flex: 1,
   },
 });
 
