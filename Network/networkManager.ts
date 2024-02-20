@@ -23,6 +23,22 @@ interface URLResponse {
   uploadUrl: string;
 }
 
+const handleFetch = async (url, options) => {
+  const result = [null, null];
+  const response = await fetch(url, options);
+  const stringified = await response.text();
+  let parsed;
+  try {
+    parsed = JSON.parse(stringified);
+  } catch (e) {}
+  if (!response.ok) {
+    result[0] = parsed.error;
+  } else {
+    result[1] = parsed ?? {};
+  }
+  return result;
+};
+
 const getURL = async (API_KEY: string, accessToken: string) => {
   const myHeaders = new Headers();
   myHeaders.append('Authorization', `Bearer ${accessToken}`);
@@ -32,14 +48,18 @@ const getURL = async (API_KEY: string, accessToken: string) => {
     redirect: 'follow',
   };
   try {
-    const response = await fetch(
+    const [err, data] = await handleFetch(
       `https://streetviewpublish.googleapis.com/v1/photo:startUpload?key=${API_KEY}`,
       requestOptions,
     );
-    const stringified = (await response.text()) as string;
-    return (JSON.parse(stringified) as URLResponse).uploadUrl;
+
+    if (err) {
+      throw err;
+    }
+
+    return data.uploadUrl;
   } catch (e) {
-    return e;
+    return Promise.reject(e);
   }
 };
 
@@ -58,9 +78,13 @@ const uploadBytes = async (accessToken: string, image: Image, url: string) => {
   };
 
   try {
-    return await (await fetch(url, requestOptions)).text();
+    const [err, data] = await handleFetch(url, requestOptions);
+    if (err) {
+      throw err;
+    }
+    return data;
   } catch (e) {
-    return e;
+    return Promise.reject(e);
   }
 };
 
@@ -102,15 +126,18 @@ const uploadMeta = async (
   };
 
   try {
-    const res = await (
-      await fetch(
-        `https://streetviewpublish.googleapis.com/v1/photo?key=${API_KEY}`,
-        requestOptions,
-      )
-    ).text();
-    return JSON.parse(res);
+    const [err, data] = await handleFetch(
+      `https://streetviewpublish.googleapis.com/v1/photo?key=${API_KEY}`,
+      requestOptions,
+    );
+
+    if (err) {
+      throw err;
+    }
+
+    return data;
   } catch (e) {
-    return e;
+    return Promise.reject(e);
   }
 };
 
@@ -124,6 +151,6 @@ export const publish = async (
     await uploadBytes(accessToken, image, url);
     return await uploadMeta(API_KEY, accessToken, image, url);
   } catch (e) {
-    return e;
+    return Promise.reject(e);
   }
 };

@@ -1,4 +1,4 @@
-import React, {useEffect, useReducer} from 'react';
+import React, {useReducer} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -8,6 +8,8 @@ import {
   useColorScheme,
   View,
   Modal,
+  Vibration,
+  Linking,
 } from 'react-native';
 import Spinner from 'react-native-loading-spinner-overlay';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -21,9 +23,15 @@ import ImagePicker from 'react-native-image-crop-picker';
 import {login, publish} from './Network/networkManager';
 import {isEmpty, isNil} from './utils/utils';
 import Config from 'react-native-config';
-import SplashScreen from 'react-native-splash-screen';
+import MapContainer from './Components/MapContainer';
+import {Marker} from 'react-native-maps';
 
 const API_KEY = Config.API_KEY ?? '';
+
+interface Marker {
+  latitude: number;
+  longitude: number;
+}
 
 interface State {
   accessToken: string;
@@ -37,6 +45,9 @@ interface State {
   isSuccessState: boolean;
   success: Record<string, any>;
   isLoading: boolean;
+  isGPSError: boolean;
+  isMapOpen: boolean;
+  marker: Marker;
 }
 
 const initialState = {
@@ -51,6 +62,9 @@ const initialState = {
   isSuccessState: false,
   success: {},
   isLoading: false,
+  isGPSError: false,
+  isMapOpen: false,
+  marker: {},
 } as State;
 
 export interface Image {
@@ -112,6 +126,7 @@ interface Error {
   nativeStackIOS: string[];
   userInfo: Record<string, unknown>;
   stack: string;
+  isGPSError: boolean;
 }
 
 export interface Success {
@@ -146,7 +161,15 @@ type AppActions =
       payload: Success;
     }
   | {type: 'reset-successState'}
-  | {type: 'loading'};
+  | {type: 'loading'}
+  | {type: 'open-map'}
+  | {
+      type: 'update-marker';
+      payload: Marker;
+    }
+  | {
+      type: 'reset-errorState-update-image';
+    };
 
 function reducer(state: State, action: AppActions) {
   switch (action.type) {
@@ -167,22 +190,47 @@ function reducer(state: State, action: AppActions) {
         isErrorState: true,
         isLoading: false,
         errorMessage: action.payload?.message,
+        isGPSError: action.payload?.isGPSError ?? false,
       };
     case 'select-image':
       return {
         ...state,
         image: action.payload,
+        marker: {},
       };
     case 'remove-image':
       return {
         ...state,
         image: {},
+        marker: {},
       };
     case 'reset-errorState':
       return {
         ...state,
         isErrorState: false,
         errorMessage: '',
+        isGPSError: false,
+        isMapOpen: false,
+      };
+    case 'reset-errorState-update-image':
+      //convert to camera format
+      const m_gps = {...(state.image as Image)?.exif?.['{GPS}']} ?? {};
+      m_gps.Latitude = Math.abs(state.marker.latitude);
+      m_gps.LatitudeRef = state.marker.latitude >= 0 ? 'N' : 'S';
+      m_gps.Longitude = Math.abs(state.marker.longitude);
+      m_gps.LongitudeRef = state.marker.longitude >= 0 ? 'E' : 'W';
+
+      //first establish the presence of the object before assigning new key/value to it.
+      if ((state.image as Image).exif) {
+        (state.image as Image).exif['{GPS}'] = m_gps;
+      }
+
+      return {
+        ...state,
+        isErrorState: false,
+        errorMessage: '',
+        isGPSError: false,
+        isMapOpen: false,
       };
     case 'success':
       return {
@@ -196,11 +244,22 @@ function reducer(state: State, action: AppActions) {
         ...state,
         isSuccessState: false,
         success: {},
+        marker: {},
       };
     case 'loading':
       return {
         ...state,
         isLoading: true,
+      };
+    case 'open-map':
+      return {
+        ...state,
+        isMapOpen: true,
+      };
+    case 'update-marker':
+      return {
+        ...state,
+        marker: action.payload,
       };
   }
 }
@@ -220,6 +279,9 @@ function App(): JSX.Element {
     isSuccessState,
     success,
     isLoading,
+    isGPSError,
+    isMapOpen,
+    marker,
   } = state;
 
   /**
@@ -262,7 +324,7 @@ function App(): JSX.Element {
         dispatch({type: 'select-image', payload: image as Image});
       })
       .catch(e => {
-        dispatch({type: 'remove-image'});
+        //dispatch({type: 'remove-image'});
       });
   };
 
@@ -290,13 +352,17 @@ function App(): JSX.Element {
       dispatch({
         type: 'error',
         payload: {
-          message: 'Whoops, this image has no GPS Data!  Select another image.',
+          message:
+            'Whoops, this image has no GPS Data!  Long press on the map to select coordinates.',
+          isGPSError: true,
         } as Error,
       });
       return;
     }
+
     dispatch({type: 'loading'});
     //All looks good, publish here we go!
+    console.log(image);
     publish(API_KEY, accessToken, image as Image)
       .then(response => {
         const {captureTime, shareLink, mapsPublishStatus, uploadTime} =
@@ -326,6 +392,19 @@ function App(): JSX.Element {
 
   const resetSuccessState = () => {
     dispatch({type: 'reset-successState'});
+  };
+
+  const handlePickGPS = () => {
+    dispatch({type: 'open-map'});
+  };
+
+  const onMapPress = event => {
+    Vibration.vibrate(25);
+    dispatch({type: 'update-marker', payload: event.nativeEvent.coordinate});
+  };
+
+  const resetErrorStateAndUpdateImageCoordinates = () => {
+    dispatch({type: 'reset-errorState-update-image'});
   };
 
   /**
@@ -363,13 +442,50 @@ function App(): JSX.Element {
             {isErrorState && (
               <View style={styles.centeredView}>
                 <Modal animationType="slide" visible={true} transparent={false}>
-                  <View style={styles.centeredView}>
-                    <View style={styles.modalView}>
-                      <Text>{errorMessage}</Text>
-                      <Separator />
-                      <Button title="Close" onPress={resetErrorState} />
+                  <SafeAreaView style={backgroundStyle}>
+                    <View style={styles.centeredView}>
+                      {isMapOpen && (
+                        <>
+                          <MapContainer
+                            onLongPress={onMapPress}
+                            marker={marker}
+                          />
+                          {Boolean(Object.keys(marker).length) && (
+                            <View
+                              style={{
+                                position: 'absolute',
+                                bottom: '10%',
+                                left: '10%',
+                                width: '30%',
+                              }}>
+                              <Button
+                                title="Select"
+                                onPress={
+                                  resetErrorStateAndUpdateImageCoordinates
+                                }
+                              />
+                            </View>
+                          )}
+                        </>
+                      )}
+                      {!isMapOpen && (
+                        <View style={styles.modalView}>
+                          {!isMapOpen && (
+                            <>
+                              <Text>{errorMessage}</Text>
+                              <Separator />
+                              <Button
+                                title="Close"
+                                onPress={
+                                  isGPSError ? handlePickGPS : resetErrorState
+                                }
+                              />
+                            </>
+                          )}
+                        </View>
+                      )}
                     </View>
-                  </View>
+                  </SafeAreaView>
                 </Modal>
               </View>
             )}
@@ -386,6 +502,7 @@ function App(): JSX.Element {
                 </Modal>
               </View>
             )}
+
             <View style={styles.steps}>
               <Section title="Step One">
                 <Text style={styles.highlight}>Login</Text> to your Google
@@ -427,6 +544,21 @@ function App(): JSX.Element {
               <View style={styles.screenContainer}>
                 <Button title="Publish" onPress={handlePublish} />
               </View>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+              }}>
+              <Text
+                style={{textAlign: 'center', color: '#0174CC'}}
+                onPress={() =>
+                  Linking.openURL(
+                    'https://support.google.com/contributionpolicy/answer/13780397',
+                  )
+                }>
+                Google Maps user-generated content policy violations
+              </Text>
             </View>
           </View>
         </ScrollView>

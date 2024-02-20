@@ -47,9 +47,9 @@
 		</dict>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string></string>
+	<string>360Publish uses apple maps which can determine your location. It is not necessary for the running of this app</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Street View Publisher needs access to the camera roll in order to publish 360 photos</string>
+	<string>360Publish needs access to the camera roll in order to publish 360 photos</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen.storyboard</string>
 	<key>UIRequiredDeviceCapabilities</key>

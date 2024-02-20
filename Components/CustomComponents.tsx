@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -10,6 +10,7 @@ import {
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import type {PropsWithChildren} from 'react';
 import {Success} from '../App';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -31,8 +32,16 @@ type MessageGeneratorProps = PropsWithChildren<{
   values: Success;
 }>;
 export const MessageGenerator = ({values}: MessageGeneratorProps) => {
+  const [toast, setToast] = useState(false);
   const jsx = [];
   const {message, ...rest} = values;
+  const copyAndToast = value => {
+    setToast(true);
+    Clipboard.setString(value);
+    setTimeout(() => {
+      setToast(false);
+    }, 2000);
+  };
   for (const [key, value] of Object.entries(rest)) {
     if (typeof value !== 'string') {
       continue;
@@ -43,7 +52,19 @@ export const MessageGenerator = ({values}: MessageGeneratorProps) => {
         <Text style={styles.highlight}>{`${_key}: `}</Text>
         {key === 'shareLink' ? (
           <View>
-            <Text style={styles.link} onPress={() => Linking.openURL(value)}>
+            {toast && (
+              <View
+                style={{
+                  backgroundColor: 'orange',
+                  borderRadius: 5,
+                }}>
+                <Text>Copied!</Text>
+              </View>
+            )}
+            <Text
+              style={styles.link}
+              onPress={() => Linking.openURL(value)}
+              onLongPress={() => copyAndToast(value)}>
               {value}
             </Text>
             <Text style={styles.lineSeparation}>
