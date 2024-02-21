@@ -147,9 +147,12 @@ export const publish = async (
   image: Image,
 ) => {
   try {
+    console.time('publish');
     const url = (await getURL(API_KEY, accessToken)) as string;
     await uploadBytes(accessToken, image, url);
-    return await uploadMeta(API_KEY, accessToken, image, url);
+    const res = await uploadMeta(API_KEY, accessToken, image, url);
+    console.timeEnd('publish');
+    return res;
   } catch (e) {
     return Promise.reject(e);
   }

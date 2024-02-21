@@ -1,4 +1,4 @@
-import React, {useReducer} from 'react';
+import React, {useReducer, useEffect, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -21,16 +21,25 @@ import {
 } from './Components/CustomComponents';
 import ImagePicker from 'react-native-image-crop-picker';
 import {login, publish} from './Network/networkManager';
-import {isEmpty, isNil} from './utils/utils';
+import {isEmpty} from './utils/utils';
 import Config from 'react-native-config';
 import MapContainer from './Components/MapContainer';
 import {Marker} from 'react-native-maps';
+import {
+  ShowAdd,
+  initialAdsCheck,
+  interstitial,
+  rewarded,
+  showRandom,
+  subscribeInterstitial,
+  subscribeRewarded,
+} from './AdMob/AdMob';
 
 const API_KEY = Config.API_KEY ?? '';
 
 interface Marker {
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface State {
@@ -171,7 +180,7 @@ type AppActions =
       type: 'reset-errorState-update-image';
     };
 
-function reducer(state: State, action: AppActions) {
+function reducer(state: State, action: AppActions): State {
   switch (action.type) {
     case 'login-success':
       const {accessToken, refreshToken, tokenType, accessTokenExpirationDate} =
@@ -285,13 +294,41 @@ function App(): JSX.Element {
   } = state;
 
   /**
-   * splash screen controls
+   * adMob logic
    */
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     SplashScreen.hide();
-  //   }, 5000);
-  // }, []);
+  const [isLoaded, setLoaded] = useState(false);
+  const [isLoadedRew, setLoadedRew] = useState(false);
+
+  useEffect(() => {
+    //consent screen
+    initialAdsCheck()
+      .then(adapterStatuses => {
+        console.log(adapterStatuses);
+      })
+      .catch(e => console.log(e));
+
+    const [a, b] = subscribeInterstitial(setLoaded);
+    const [c, d] = subscribeRewarded(setLoadedRew);
+
+    interstitial.load();
+    rewarded.load();
+
+    return () => {
+      //unsubscribe
+      a();
+      b();
+      c();
+      d();
+    };
+  }, []);
+
+  //load again
+  useEffect(() => {
+    if (!isSuccessState) {
+      interstitial.load();
+      rewarded.load();
+    }
+  }, [isSuccessState]);
 
   /**
    * Check app color scheme
@@ -324,6 +361,8 @@ function App(): JSX.Element {
         dispatch({type: 'select-image', payload: image as Image});
       })
       .catch(e => {
+        //we don't want to remove an image when we cancel selection
+        //commented the below out for now
         //dispatch({type: 'remove-image'});
       });
   };
@@ -344,16 +383,16 @@ function App(): JSX.Element {
       return;
     }
 
-    //no gps data
+    //no gps data || lat or long data is 0
     if (
-      isNil((image as Image)?.exif?.['{GPS}']?.Latitude) ||
-      isNil((image as Image)?.exif?.['{GPS}']?.Longitude)
+      !(image as Image)?.exif?.['{GPS}']?.Latitude ||
+      !(image as Image)?.exif?.['{GPS}']?.Longitude
     ) {
       dispatch({
         type: 'error',
         payload: {
           message:
-            'Whoops, this image has no GPS Data!  Long press on the map to select coordinates.',
+            'Whoops, this image has no GPS Data or has 0 for lat or long!  Long press on the map to select coordinates.',
           isGPSError: true,
         } as Error,
       });
@@ -361,12 +400,12 @@ function App(): JSX.Element {
     }
 
     dispatch({type: 'loading'});
-    //All looks good, publish here we go!
-    console.log(image);
+
     publish(API_KEY, accessToken, image as Image)
       .then(response => {
         const {captureTime, shareLink, mapsPublishStatus, uploadTime} =
           response;
+        console.log(response);
         dispatch({
           type: 'success',
           payload: {
@@ -379,6 +418,7 @@ function App(): JSX.Element {
         });
       })
       .catch(e => {
+        console.log(e);
         dispatch({
           type: 'error',
           payload: e as Error,
@@ -416,6 +456,7 @@ function App(): JSX.Element {
    * View - the most fundamental component of UI.  It supports layouts with flexbox, steyle, some touch handling, and accessibility controls. It maps directly to native view equivalent
    *
    */
+
   return (
     <SafeAreaView style={backgroundStyle}>
       <StatusBar
@@ -494,6 +535,14 @@ function App(): JSX.Element {
                 <Modal animationType="slide" visible={true} transparent={false}>
                   <View style={styles.centeredView}>
                     <View style={styles.modalView}>
+                      {isLoaded && isLoadedRew && (
+                        <ShowAdd
+                          show={showRandom([
+                            () => interstitial.show(),
+                            () => rewarded.show(),
+                          ])}
+                        />
+                      )}
                       <MessageGenerator values={success} />
                       <Separator />
                       <Button title="Close" onPress={resetSuccessState} />

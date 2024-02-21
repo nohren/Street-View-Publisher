@@ -1,3 +1,7 @@
+import Config from 'react-native-config';
+
+const env = Config.ENV ?? 'prod';
+
 export const isNil = value =>
   value === undefined || value === null || value === Number.isNaN;
 
@@ -10,4 +14,10 @@ export const isEmpty = value => {
     }
   }
   return isNil(value);
+};
+
+export const debugLog = text => {
+  if (env === 'dev') {
+    console.log(text);
+  }
 };

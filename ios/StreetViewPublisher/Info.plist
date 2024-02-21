@@ -64,5 +64,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSUserTrackingUsageDescription</key>
+    <string>Ask app not to track toggles off personalized ads</string>
 </dict>
 </plist>

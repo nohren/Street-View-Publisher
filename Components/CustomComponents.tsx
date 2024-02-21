@@ -68,7 +68,7 @@ export const MessageGenerator = ({values}: MessageGeneratorProps) => {
               {value}
             </Text>
             <Text style={styles.lineSeparation}>
-              ⬆️ Link may take a minute to activate
+              ⬆️ Link may take a few minutes to activate
             </Text>
           </View>
         ) : (

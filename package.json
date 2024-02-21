@@ -16,9 +16,11 @@
     "react-native": "0.72.1",
     "react-native-app-auth": "^6.4.3",
     "react-native-config": "^1.5.1",
+    "react-native-google-mobile-ads": "^12.11.0",
     "react-native-image-crop-picker": "^0.40.0",
     "react-native-loading-spinner-overlay": "^3.0.1",
     "react-native-maps": "^1.10.3",
+    "react-native-permissions": "^4.1.2",
     "react-native-splash-screen": "^3.3.0"
   },
   "devDependencies": {
