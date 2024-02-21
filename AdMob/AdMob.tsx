@@ -3,12 +3,10 @@ import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import mobileAds, {
   AdEventType,
   InterstitialAd,
-  RewardedAd,
-  RewardedAdEventType,
   TestIds,
 } from 'react-native-google-mobile-ads';
 
-const __DEV__ = true;
+const __DEV__ = false;
 
 export const initialAdsCheck = async () => {
   const result = await check(PERMISSIONS.IOS.APP_TRACKING_TRANSPARENCY);
@@ -25,11 +23,11 @@ export const initialAdsCheck = async () => {
 
 const adUnitIdInterstitial = __DEV__
   ? TestIds.INTERSTITIAL
-  : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
+  : 'ca-app-pub-6632907169661571/5733236428';
 
-const adUnitRewarded = __DEV__
-  ? TestIds.REWARDED
-  : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
+// const adUnitRewarded = __DEV__
+//   ? TestIds.REWARDED
+//   : 'ca-app-pub-xxxxxxxxxxxxx/yyyyyyyyyyyyyy';
 
 export const interstitial = InterstitialAd.createForAdRequest(
   adUnitIdInterstitial,
@@ -38,9 +36,9 @@ export const interstitial = InterstitialAd.createForAdRequest(
   },
 );
 
-export const rewarded = RewardedAd.createForAdRequest(adUnitRewarded, {
-  keywords: ['outdoors', 'clothing'],
-});
+// export const rewarded = RewardedAd.createForAdRequest(adUnitRewarded, {
+//   keywords: ['outdoors', 'clothing'],
+// });
 
 export const subscribeInterstitial = setter => {
   const loaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
@@ -52,18 +50,18 @@ export const subscribeInterstitial = setter => {
   return [loaded, closed];
 };
 
-export const subscribeRewarded = setter => {
-  const loaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
-    setter(true);
-  });
-  const closed = rewarded.addAdEventListener(
-    RewardedAdEventType.EARNED_REWARD,
-    () => {
-      setter(false);
-    },
-  );
-  return [loaded, closed];
-};
+// export const subscribeRewarded = setter => {
+//   const loaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+//     setter(true);
+//   });
+//   const closed = rewarded.addAdEventListener(
+//     RewardedAdEventType.EARNED_REWARD,
+//     () => {
+//       setter(false);
+//     },
+//   );
+//   return [loaded, closed];
+// };
 
 /**
  * component that only shows an add once when rendered

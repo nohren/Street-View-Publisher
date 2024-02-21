@@ -21,7 +21,7 @@ import {
 } from './Components/CustomComponents';
 import ImagePicker from 'react-native-image-crop-picker';
 import {login, publish} from './Network/networkManager';
-import {isEmpty} from './utils/utils';
+import {debugLog, isEmpty} from './utils/utils';
 import Config from 'react-native-config';
 import MapContainer from './Components/MapContainer';
 import {Marker} from 'react-native-maps';
@@ -29,10 +29,7 @@ import {
   ShowAdd,
   initialAdsCheck,
   interstitial,
-  rewarded,
-  showRandom,
   subscribeInterstitial,
-  subscribeRewarded,
 } from './AdMob/AdMob';
 
 const API_KEY = Config.API_KEY ?? '';
@@ -297,28 +294,28 @@ function App(): JSX.Element {
    * adMob logic
    */
   const [isLoaded, setLoaded] = useState(false);
-  const [isLoadedRew, setLoadedRew] = useState(false);
+  // const [isLoadedRew, setLoadedRew] = useState(false);
 
   useEffect(() => {
     //consent screen
     initialAdsCheck()
       .then(adapterStatuses => {
-        console.log(adapterStatuses);
+        debugLog(adapterStatuses);
       })
-      .catch(e => console.log(e));
+      .catch(e => debugLog(e));
 
     const [a, b] = subscribeInterstitial(setLoaded);
-    const [c, d] = subscribeRewarded(setLoadedRew);
+    // const [c, d] = subscribeRewarded(setLoadedRew);
 
     interstitial.load();
-    rewarded.load();
+    // rewarded.load();
 
     return () => {
       //unsubscribe
       a();
       b();
-      c();
-      d();
+      // c();
+      // d();
     };
   }, []);
 
@@ -326,7 +323,7 @@ function App(): JSX.Element {
   useEffect(() => {
     if (!isSuccessState) {
       interstitial.load();
-      rewarded.load();
+      // rewarded.load();
     }
   }, [isSuccessState]);
 
@@ -405,7 +402,7 @@ function App(): JSX.Element {
       .then(response => {
         const {captureTime, shareLink, mapsPublishStatus, uploadTime} =
           response;
-        console.log(response);
+        debugLog(response);
         dispatch({
           type: 'success',
           payload: {
@@ -418,7 +415,7 @@ function App(): JSX.Element {
         });
       })
       .catch(e => {
-        console.log(e);
+        debugLog(e);
         dispatch({
           type: 'error',
           payload: e as Error,
@@ -535,14 +532,7 @@ function App(): JSX.Element {
                 <Modal animationType="slide" visible={true} transparent={false}>
                   <View style={styles.centeredView}>
                     <View style={styles.modalView}>
-                      {isLoaded && isLoadedRew && (
-                        <ShowAdd
-                          show={showRandom([
-                            () => interstitial.show(),
-                            () => rewarded.show(),
-                          ])}
-                        />
-                      )}
+                      {isLoaded && <ShowAdd show={() => interstitial.show()} />}
                       <MessageGenerator values={success} />
                       <Separator />
                       <Button title="Close" onPress={resetSuccessState} />
